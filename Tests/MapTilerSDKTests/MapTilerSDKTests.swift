@@ -47,4 +47,15 @@ struct HelperTests {
         }
 
     }
+
+    @Test func clLocationCoordinate2D_codable_roundTrip() async throws {
+        let original = CLLocationCoordinate2D(latitude: 10.0, longitude: 20.0)
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(original)
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(CLLocationCoordinate2D.self, from: data)
+
+        #expect(decoded.latitude == original.latitude)
+        #expect(decoded.longitude == original.longitude)
+    }
 }
