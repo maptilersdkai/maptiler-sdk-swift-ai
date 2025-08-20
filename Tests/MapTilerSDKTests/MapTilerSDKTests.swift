@@ -28,7 +28,17 @@ struct HelperTests {
     @Test func clLocationCoordinate2D_toJSON_notNil() async throws {
         let coordinates = CLLocationCoordinate2D(latitude: 19.2150224, longitude: 44.7569511)
 
-        #expect(coordinates.toJSON() != nil)
+        let jsonString = coordinates.toJSON()
+        #expect(jsonString != nil)
+
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(
+            CLLocationCoordinate2D.self,
+            from: Data(jsonString!.utf8)
+        )
+
+        #expect(decoded.latitude == coordinates.latitude)
+        #expect(decoded.longitude == coordinates.longitude)
     }
 
     @Test func color_toHex_shouldConvertCorrectly() async throws {
