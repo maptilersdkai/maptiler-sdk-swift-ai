@@ -27,7 +27,7 @@ public protocol MTMapViewDelegate: AnyObject {
     /// Triggers when map is fully initialized.
     func mapViewDidInitialize(_ mapView: MTMapView)
 
-    /// Triggers when event ocurrs.
+    /// Triggers when event occurs.
     func mapView(_ mapView: MTMapView, didTriggerEvent event: MTEvent, with data: MTData?)
 
     /// Triggers when location is updated.
@@ -92,7 +92,7 @@ open class MTMapView: UIView, Sendable {
         commonInit()
     }
 
-    /// Initializes the map with the coder..
+    /// Initializes the map with the coder.
     required public init?(coder: NSCoder) {
         super.init(coder: coder)
 
@@ -127,8 +127,8 @@ open class MTMapView: UIView, Sendable {
 
     /// Initializes location tracking manager.
     ///
-    /// In order to track user location you have to initalize the MLLocationManager,
-    /// add neccessary Privacy Location messages to info.plist, subscribe to MTLocationManagerDelegate
+    /// In order to track user location you have to initialize the MLLocationManager,
+    /// add necessary Privacy Location messages to info.plist, subscribe to MTLocationManagerDelegate
     /// and start location updates and/or request location once via locationManager property on MTMapView.
     /// - Parameters:
     ///    - manager: Optional external CLLocationManager to use.

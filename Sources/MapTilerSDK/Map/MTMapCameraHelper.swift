@@ -3,14 +3,14 @@
 // All rights reserved.
 // SPDX-License-Identifier: BSD 3-Clause
 //
-//  MTMapCamera.swift
+//  MTMapCameraHelper.swift
 //  MapTilerSDK
 //
 
 import CoreLocation
 
-/// Sets combination of center, bearing and pitch, as well as roll and elevation.
-public class MTMapCameraHelper {
+/// Sets a combination of center, bearing and pitch, as well as roll and elevation.
+public final class MTMapCameraHelper: Sendable {
     /// The geographical centerpoint of the map.
     ///
     /// If center is not specified, SDK will look for it in the map style object.
@@ -131,7 +131,7 @@ public class MTMapCameraHelper {
 }
 
 extension MTMapCameraHelper {
-    /// Returns boolean inidicating whether camera object is equal to the reciever.
+    /// Returns a Boolean indicating whether the camera object is equal to the receiver.
     /// - Parameters:
     ///   - camera: MTMapCamera object to compare with.
     public func isEqualToMapCameraHelper(_ camera: MTMapCameraHelper) -> Bool {
