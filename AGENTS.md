@@ -69,6 +69,13 @@ Priority: Follow these directives unless they conflict with system/developer ins
 - PROJECT_OVERVIEW: `<!-- AGENT_SNIPPET:PROJECT_OVERVIEW -->`
 - PROJECT_STRUCTURE: `<!-- AGENT_SNIPPET:PROJECT_STRUCTURE -->`
 
+ ## Pre-Implementation Checklist
+  Before writing ANY new code, you MUST:
+  - Search for existing related types: `Grep pattern="MT[TypeName]|[RelatedConcept]"`.
+  - Read similar existing implementations completely.
+  - Identify the established patterns and types used.
+  - Confirm no existing types can be reused before creating new ones.
+
 <!-- END_AGENT_DIRECTIVES -->
 
 # AGENTS.md AI Agent development rules and project guidelines
