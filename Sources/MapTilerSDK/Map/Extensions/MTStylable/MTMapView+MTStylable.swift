@@ -54,6 +54,20 @@ extension MTMapView: MTStylable {
         runCommand(SetLight(light: light, options: options), completion: completionHandler)
     }
 
+    /// Sets the value of style's sky properties.
+    /// - Parameters:
+    ///   - sky: Sky properties to set.
+    ///   - options: Style setter options.
+    ///   - completionHandler: A handler block to execute when function finishes.
+    @available(iOS, deprecated: 16.0, message: "Prefer the async version for modern concurrency handling")
+    public func setSky(
+        _ sky: MTSkySpecification,
+        options: MTStyleSetterOptions?,
+        completionHandler: ((Result<Void, MTError>) -> Void)? = nil
+    ) {
+        runCommand(SetSky(sky: sky, options: options), completion: completionHandler)
+    }
+
     /// Sets the state of shouldRenderWorldCopies.
     ///
     /// If true , multiple copies of the world will be rendered side by side beyond -180 and 180 degrees longitude.
@@ -377,6 +391,18 @@ extension MTMapView {
     public func setLight(_ light: MTLight, options: MTStyleSetterOptions?) async {
         await withCheckedContinuation { continuation in
             setLight(light, options: options) { _ in
+                continuation.resume()
+            }
+        }
+    }
+
+    /// Sets the value of style's sky properties.
+    /// - Parameters:
+    ///   - sky: Sky properties to set.
+    ///   - options: Style setter options.
+    public func setSky(_ sky: MTSkySpecification, options: MTStyleSetterOptions?) async {
+        await withCheckedContinuation { continuation in
+            setSky(sky, options: options) { _ in
                 continuation.resume()
             }
         }

@@ -25,6 +25,7 @@ Priority: Follow these directives unless they conflict with system/developer ins
 - Batch operations (`AddMarkers`, `RemoveLayers`) when adding/removing many items.
 - Ask for clarification if inputs are ambiguous (e.g., place name without geocoding tool).
 - Provide concise user summaries after tool calls (what changed and where).
+- Mirror existing patterns (e.g., `SetLight`) when building JS strings; inside string interpolation `\(…)`, do not over-escape quotes (use `""`, not `\\"\\"`).
 
 ## Don’t
 - Don’t mutate style before it’s loaded or after it changed without re-adding layers.
@@ -114,6 +115,7 @@ This repository is a SDK written in Swift, it uses maptiler-sdk.umd.min.js from 
 - 4 spaces are used for indentation.
 - Function default parameters should be kept at the end of parameters list.
 - End files with exactly one trailing newline (no extra blank lines at EOF).
+- Line length: 120 characters max (code and comments). Wrap doc comments accordingly.
 
 ## Development best practices
 
