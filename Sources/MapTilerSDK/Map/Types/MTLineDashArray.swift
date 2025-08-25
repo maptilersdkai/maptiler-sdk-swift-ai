@@ -34,7 +34,12 @@ public enum MTLineDashArray: Sendable, Codable {
             self = .values(arr)
             return
         }
-        throw DecodingError.typeMismatch(MTLineDashArray.self, .init(codingPath: decoder.codingPath, debugDescription: "Unsupported type for MTLineDashArray"))
+        throw DecodingError.typeMismatch(
+            MTLineDashArray.self,
+            .init(
+                codingPath: decoder.codingPath,
+                debugDescription: "Unsupported type for MTLineDashArray"
+            )
+        )
     }
 }
-
