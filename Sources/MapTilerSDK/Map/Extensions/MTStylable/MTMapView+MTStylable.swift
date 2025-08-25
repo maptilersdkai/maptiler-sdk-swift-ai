@@ -54,6 +54,20 @@ extension MTMapView: MTStylable {
         runCommand(SetLight(light: light, options: options), completion: completionHandler)
     }
 
+    /// Sets the value of style's sky properties.
+    /// - Parameters:
+    ///   - sky: Sky properties to set.
+    ///   - options: Style setter options.
+    ///   - completionHandler: A handler block to execute when function finishes.
+    @available(iOS, deprecated: 16.0, message: "Prefer the async version for modern concurrency handling")
+    public func setSky(
+        _ sky: MTSkySpecification,
+        options: MTStyleSetterOptions?,
+        completionHandler: ((Result<Void, MTError>) -> Void)? = nil
+    ) {
+        runCommand(SetSky(sky: sky, options: options), completion: completionHandler)
+    }
+
     /// Sets the state of shouldRenderWorldCopies.
     ///
     /// If true , multiple copies of the world will be rendered side by side beyond -180 and 180 degrees longitude.
@@ -204,6 +218,19 @@ extension MTMapView: MTStylable {
             SetVerticalFieldOfView(
                 degrees: degrees
             ),
+            completion: completionHandler
+        )
+    }
+
+    /// Returns boolean value indicating whether the globe projection is currently enabled.
+    ///  - Parameters:
+    ///    - completionHandler: A handler block to execute when function finishes.
+    @available(iOS, deprecated: 16.0, message: "Prefer the async version for modern concurrency handling")
+    public func isGlobeProjectionEnabled(
+        completionHandler: ((Result<Bool, MTError>) -> Void)? = nil
+    ) {
+        runCommandWithBoolReturnValue(
+            IsGlobeProjectionEnabled(),
             completion: completionHandler
         )
     }
@@ -369,6 +396,18 @@ extension MTMapView {
         }
     }
 
+    /// Sets the value of style's sky properties.
+    /// - Parameters:
+    ///   - sky: Sky properties to set.
+    ///   - options: Style setter options.
+    public func setSky(_ sky: MTSkySpecification, options: MTStyleSetterOptions?) async {
+        await withCheckedContinuation { continuation in
+            setSky(sky, options: options) { _ in
+                continuation.resume()
+            }
+        }
+    }
+
     /// Sets the state of shouldRenderWorldCopies.
     ///
     /// If true , multiple copies of the world will be rendered side by side beyond -180 and 180 degrees longitude.
@@ -511,6 +550,20 @@ extension MTMapView {
         await withCheckedContinuation { continuation in
             setVerticalFieldOfView(degrees: degrees) { _ in
                 continuation.resume()
+            }
+        }
+    }
+
+    /// Returns boolean value indicating whether the globe projection is currently enabled.
+    public func isGlobeProjectionEnabled() async -> Bool {
+        await withCheckedContinuation { continuation in
+            isGlobeProjectionEnabled { result in
+                switch result {
+                case .success(let result):
+                    continuation.resume(returning: result)
+                case .failure:
+                    continuation.resume(returning: false)
+                }
             }
         }
     }
