@@ -400,6 +400,18 @@ extension MTMapView {
         }
     }
 
+    /// Adds a polyline to the map from various sources and with builtin styling.
+    /// - Parameters:
+    ///   - options: Polyline Layer Helper options.
+    ///   - completionHandler: A handler block to execute when function finishes.
+    @available(iOS, deprecated: 16.0, message: "Prefer the async version for modern concurrency handling")
+    public func addPolyline(
+        _ options: MTPolylineLayerOptions,
+        completionHandler: ((Result<Void, MTError>) -> Void)? = nil
+    ) {
+        runCommand(AddPolyline(options: options), completion: completionHandler)
+    }
+
     /// Adds multiple markers to the map.
     ///
     /// Batch adding is preferred way of adding multiple markers to the map.
@@ -564,6 +576,17 @@ extension MTMapView {
     package func setTiles(tiles: [URL], to source: MTSource) async {
         await withCheckedContinuation { continuation in
             setTiles(tiles: tiles, to: source) { _ in
+                continuation.resume()
+            }
+        }
+    }
+
+    /// Adds a polyline to the map from various sources and with builtin styling.
+    /// - Parameters:
+    ///   - options: Polyline Layer Helper options.
+    public func addPolyline(_ options: MTPolylineLayerOptions) async {
+        await withCheckedContinuation { continuation in
+            addPolyline(options) { _ in
                 continuation.resume()
             }
         }

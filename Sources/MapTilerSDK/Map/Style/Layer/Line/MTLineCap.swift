@@ -8,7 +8,7 @@
 //
 
 /// The display of line endings.
-public enum MTLineCap: String {
+public enum MTLineCap: String, Sendable, Codable {
     /// A cap with a squared-off end which is drawn to the exact endpoint of the line.
     case butt
 

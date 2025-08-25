@@ -8,7 +8,7 @@
 //
 
 /// The display of lines when joining.
-public enum MTLineJoin: String {
+public enum MTLineJoin: String, Sendable, Codable {
     /// A join with a squared-off end which is drawn beyond the endpoint
     /// of the line at a distance of one-half of the line’s width.
     case bevel

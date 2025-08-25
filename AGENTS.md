@@ -75,6 +75,7 @@ Priority: Follow these directives unless they conflict with system/developer ins
   - Read similar existing implementations completely.
   - Identify the established patterns and types used.
   - Confirm no existing types can be reused before creating new ones.
+  - Follow SwiftLint rules defined in `.swiftlint.yml` (4-space indentation, trailing newlines, etc.).
 
 <!-- END_AGENT_DIRECTIVES -->
 
@@ -117,12 +118,18 @@ This repository is a SDK written in Swift, it uses maptiler-sdk.umd.min.js from 
 - Each public entity is suffixed with MT (i.e. MTMapView, MTMapStyle).
 - Classes, Structs, Protocols and Enums use PascalCase (i.e. MTMapOptions, MTMapViewDelegate).
 - Variables and Functions use camelCase (i.e. zoomIn(), mapOptions).
-- Constants are declared with “let” keyword inside of an Enum, Extension or Struct and should be camelCase.
+- Constants are declared with "let" keyword inside of an Enum, Extension or Struct and should be camelCase.
   
 - 4 spaces are used for indentation.
 - Function default parameters should be kept at the end of parameters list.
 - End files with exactly one trailing newline (no extra blank lines at EOF).
 - Line length: 120 characters max (code and comments). Wrap doc comments accordingly.
+
+### SwiftLint Compliance (MANDATORY)
+- ALWAYS follow the rules defined in `.swiftlint.yml` in the root directory.
+- Key rules: 4-space indentation, trailing newlines, closure spacing, operator whitespace.
+- Test files are excluded from linting but should still follow general style guidelines.
+- Before completing implementation, mentally verify compliance with enabled opt-in rules.
 
 ## Development best practices
 
