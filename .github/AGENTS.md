@@ -12,7 +12,7 @@ You are an AI agent specialized in Swift and JavaScript development. This docume
 - Code Style Guidelines
 - SwiftLint Compliance
 - Development Best Practices
-- Swift Concurrency (Swift 6)
+- Swift Concurrency
 - Project Structure
 - Style Lifecycle
 - Error Handling
@@ -40,6 +40,7 @@ This Swift Package wraps the MapTiler JS SDK via a typed Swift↔JS bridge locat
   - Identify the established patterns and types used.
   - Confirm no existing types can be reused before creating new ones.
   - Follow SwiftLint rules defined in `.swiftlint.yml` (4-space indentation, trailing newlines, etc.).
+  - Run `swiftlint lint --quiet` and fix all violations before concluding work.
   - Don't proceed until all search/pattern analysis is complete.
   - Concurrency audit (Swift 6):
     - Use `@MainActor` for any API touching `MTMapView`/UIKit or bridge execution.
@@ -132,6 +133,7 @@ public extension MTMapView {
 - Key rules: 4-space indentation, trailing newlines, closure spacing, operator whitespace.
 - Test files are excluded from linting but should still follow general style guidelines.
 - Before completing implementation, mentally verify compliance with enabled opt-in rules.
+- CI/Local requirement: run `swiftlint lint --quiet` and ensure zero warnings/errors. PRs must be lint-clean.
 
 ## Development Best Practices
 

@@ -56,7 +56,10 @@ public enum MTStringOrZoomValues: Sendable, Codable {
         } else {
             throw DecodingError.typeMismatch(
                 MTStringOrZoomValues.self,
-                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported MTStringOrZoomValues type")
+                DecodingError.Context(
+                    codingPath: decoder.codingPath,
+                    debugDescription: "Unsupported MTStringOrZoomValues type"
+                )
             )
         }
     }
@@ -87,7 +90,10 @@ public enum MTNumberOrZoomValues: Sendable, Codable {
         } else {
             throw DecodingError.typeMismatch(
                 MTNumberOrZoomValues.self,
-                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported MTNumberOrZoomValues type")
+                DecodingError.Context(
+                    codingPath: decoder.codingPath,
+                    debugDescription: "Unsupported MTNumberOrZoomValues type"
+                )
             )
         }
     }
@@ -118,9 +124,12 @@ public enum MTDashPattern: Sendable, Codable {
         } else {
             throw DecodingError.typeMismatch(
                 MTDashPattern.self,
-                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported MTDashPattern type")
+                DecodingError.Context(
+                    codingPath: decoder.codingPath,
+                    debugDescription: "Unsupported MTDashPattern type"
+                )
             )
         }
-    }
 }
 
+}

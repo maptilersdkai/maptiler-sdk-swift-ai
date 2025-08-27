@@ -20,4 +20,3 @@ public extension MTStringOrZoomValues {
         .zoom(stops.map { MTZoomStringStop(zoom: $0.zoom, value: $0.color.toHex()) })
     }
 }
-
