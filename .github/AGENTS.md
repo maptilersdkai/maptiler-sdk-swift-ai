@@ -4,14 +4,14 @@ Priority: Follow these directives unless they conflict with system/developer ins
 
 ## System Context
 
-You are an AI agent specialized in Swift and JavaScript development. This document defines mandatory rules for consistent, secure and maintainable software development practices. You MUST follow this document precisely, including all of the sections below:
+You are an AI agent specialized in Swift and JavaScript development. This document defines mandatory rules for consistent, secure, and maintainable development. Follow the sections below precisely:
 
-- Project Overview (MUST read fully)
-- Pre-Implementation Checklist (MUST read fully)
-- Bridge Rules (MUST read fully)
-- Code style guidelines (MANDATORY)
-- SwiftLint Compliance (MANDATORY)
-- Development best practices (Adhere to best practices at all times.)
+- Project Overview
+- Pre-Implementation Checklist
+- Bridge Rules
+- Code Style Guidelines
+- SwiftLint Compliance
+- Development Best Practices
 - Swift Concurrency (Swift 6)
 - Project Structure
 - Style Lifecycle
@@ -22,19 +22,16 @@ You are an AI agent specialized in Swift and JavaScript development. This docume
 
 ## Project Overview
 
-This repository is a SDK written in Swift, and is a swift package compatible with Swift Package Manager. It wraps the MapTiler JS SDK via Bridge architecture written in /Sources/Bridge folder. It uses maptiler-sdk.umd.min.js from /Sources/MapTilerSDK/Resources folder and bridges the functions from JS into the Swift. Bridging process is described in detail in Bridge Rules section and MUST be read fully and followed THOROUGHLY. API reference for the JS is found in /js/docs folder and you can search it through index.html or with grep on any file within the docs folder. You MUST always refer to docs before wrapping any functions.
+This Swift Package wraps the MapTiler JS SDK via a typed Swift↔JS bridge located in `Sources/MapTilerSDK/Bridge`. It renders a web map in `MTMapView` (WKWebView) using `Resources/MapTilerMap.html` which loads `maptiler-sdk.umd.min.js`. Swift APIs translate to JS via `MTCommand`, executed by the bridge. The JS SDK API reference is in `js/docs` (browse `index.html` or search with `rg` or `grep`). Always consult the docs before wrapping any function.`
+
 
 ### Main Components
 
-- UI: MTMapView hosts a WKWebView rendering Resources/MapTilerMap.html, which loads the MapTiler JS SDK.
-- Bridge: Public Swift APIs call Commands which serialize to JS, executed via WebViewExecutor; results decode through MTBridgeReturnType.
-- Lifecycle: EventProcessor listens to JS-posted events, updates MTMapView state (style, isInitialized) and notifies delegate blocks.
-- Safety: Most map mutations happen after didLoad/isReady; style updates can reset layers—queueing handled within MTStyle.
-- Desired functionality from JS is bridged to Swift by creating corresponding MTCommand to it, adding the wrapper in MTMapView extension and exposing the public API for Swift developers.
-- MTBridge class is responsible for executing the MTCommand.
-- MTCommand is a protocol that defines what JS code is to be executed on the webview executor.
-- WebViewExecutor executes the evaluateJavascript on the web view.
-- JS used is the MapTiler SDK for JS, and its API reference is found in /js/docs and you can search it through indext.html or with grep on any file within the docs folder.
+- UI: `MTMapView` hosts a WKWebView rendering `Resources/MapTilerMap.html`.
+- Bridge: Public Swift APIs call `MTCommand`s serialized to JS, executed by `WebViewExecutor`; results decode through `MTBridgeReturnType`.
+- Lifecycle: `EventProcessor` listens to JS events, updates `MTMapView` state (`style`, `isInitialized`) and notifies delegates.
+- Safety: Mutate map after `didLoad`/`isReady`. Style changes reset layers; `MTStyle` handles queueing.
+- Responsibilities: `MTBridge` executes commands; `MTCommand` defines JS to run; `WebViewExecutor` calls `evaluateJavaScript` on WKWebView.
 
 ## Pre-Implementation Checklist
   Before writing ANY new code, you MUST:
@@ -113,17 +110,21 @@ public extension MTMapView {
     }
 }
 ```
+### Add a new command (checklist)
 
-## Code style guidelines (MANDATORY)
+- Read target JS API in `js/docs` and confirm params/return.
+- Create `struct` + internal `Options: Codable` (if needed).
+- Implement `toJS()` with a single options object.
+- Choose correct `runCommand*` by return type.
+- Add `MTMapView` convenience API; validate readiness and inputs.
+- Tests: encoding, clamping, and `toJS()` contract.
 
-- Each public entity is suffixed with MT (i.e. MTMapView, MTMapStyle).
-- Classes, Structs, Protocols and Enums use PascalCase (i.e. MTMapOptions, MTMapViewDelegate).
-- Variables and Functions use camelCase (i.e. zoomIn(), mapOptions).
-- Constants are declared with "let" keyword inside of an Enum, Extension or Struct and should be camelCase.
-  
-- 4 spaces are used for indentation.
-- Function default parameters should be kept at the end of parameters list.
-- End files with exactly one trailing newline (no extra blank lines at EOF).
+## Code Style Guidelines (MANDATORY)
+
+- Public entities use the `MT` suffix (e.g., `MTMapView`, `MTMapStyle`). Domain types like `LngLat` are established exceptions.
+- Types use PascalCase; variables/functions use camelCase; constants use `let` and camelCase within types/extensions.
+- 4-space indentation; default parameters at end of parameter lists.
+- End files with exactly one trailing newline.
 - Line length: 120 characters max (code and comments). Wrap doc comments accordingly.
 
 ## SwiftLint Compliance (MANDATORY)
@@ -132,15 +133,14 @@ public extension MTMapView {
 - Test files are excluded from linting but should still follow general style guidelines.
 - Before completing implementation, mentally verify compliance with enabled opt-in rules.
 
-## Development best practices
+## Development Best Practices
 
 - Prefer `public` for public API; use `open` only when subclassing/overriding by SDK consumers is intended.
-- All internal implementation that we do not want exposed in the API should use private and fileprivate access modifiers.
-- Use package modifier for functions and properties that you want to keep private but have accessible in different modules within the package.
-- When introducing new error types always conform to Error protocol.
-- Write a documentation comment for every public declaration.
-- We should aim for high unit test coverage, but be sensible.
-- Code will be linted with SwiftLint using rule defined in .swiftlint.yml file in the root of the repo.
+- Keep internal implementation non-public using `private`/`fileprivate`. Use `package` where needed across modules.
+- New error types must conform to `Error`.
+- Document every public declaration with a concise doc comment.
+- Aim for sensible unit test coverage; prioritize bridge commands and options.
+- Code is linted by SwiftLint using repo rules.
 - Each file should have a copyright header.
 
 ## Swift Concurrency (Swift 6)
@@ -221,6 +221,12 @@ MUST wait for `didLoad`/`isReady` before mutating style or layers. Changing the 
 - Never log API keys. Redact sensitive values from structured logs.
 - Avoid sending exact user coordinates unless necessary; round or fuzz where acceptable.
 
+## Glossary
+
+- `JSString`: A Swift `String` containing JS source to evaluate in the WebView.
+- `MTCommand`: A Swift type describing a JS-callable command (`toJS()` returns `JSString`).
+- Bridge executor: The component that feeds `JSString` into `evaluateJavaScript`.
+- `MTBridgeReturnType`: Decoders for typed return values from JS.
 
 Cross-reference implementation against original prompt requirements before making pull request, and make sure to follow the Pull Request Template below:
 
