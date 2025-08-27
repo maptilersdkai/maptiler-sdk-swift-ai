@@ -1,106 +1,30 @@
-<!-- AGENT_DIRECTIVES v1 -->
+<!-- AGENT_DIRECTIVES v2 -->
 
 Priority: Follow these directives unless they conflict with system/developer instructions or safety rules.
 
-## Goals
-- Help users manipulate maps (camera, style, data, annotations) via MapTiler SDK Swift.
-- Keep UI responsive and safe; never expose secrets; ask clarifying questions when needed.
-
-## Runtime & Lifecycle
-- MainActor: Perform all `MTMapView` interactions on the main thread.
-- Initialization: Wait for `didLoad`/`isReady` before mutating style or layers.
-- Style resets: After `SetStyle`/reference-style changes, re-add needed sources/layers.
-- Validate ranges: zoom [0,22], pitch [0,85], bearing [0,360); validate WGS84 lat/lon.
-
-## Tool Allowlist
-- navigation: `SetCenter`, `PanBy`, `PanTo`, `JumpTo`, `EaseTo`, `FlyTo`, `SetZoom`, `ZoomIn`, `ZoomOut`, `SetBearing`, `SetPitch`, `SetRoll`, `SetPadding`
-- style: `SetStyle`, `GetIdForReferenceStyle`, `GetIdForStyleVariant`, `AddSource`, `RemoveSource`, `SetUrlToSource`, `SetTilesToSource`, `SetDataToSource`, `IsSourceLoaded`, `AddLayer`, `AddLayers`, `RemoveLayer`, `RemoveLayers`, `SetLanguage`, `SetLight`, `SetGlyphs`, `EnableTerrain`, `DisableTerrain`, `EnableGlobeProjection`, `EnableMercatorProjection`
-- annotations: `AddMarker`, `AddMarkers`, `RemoveMarker`, `RemoveMarkers`, `AddTextPopup`, `RemoveTextPopup`, `SetCoordinatesToMarker`, `SetCoordinatesToTextPopup`
-- gestures: `DragPanEnable/Disable`, `DoubleTapZoomEnable/Disable`, `PinchRotateAndZoomEnable/Disable`, `TwoFingersDragPitchEnable/Disable`
-- controls: `AddLogoControl`
-- config (restricted): Do not call `SetAPIKey` from agents. Assume app sets it via `MTConfig`.
-
-## Do
-- Use idempotent identifiers for sources/layers/annotations; upsert where appropriate.
-- Batch operations (`AddMarkers`, `RemoveLayers`) when adding/removing many items.
-- Ask for clarification if inputs are ambiguous (e.g., place name without geocoding tool).
-- Provide concise user summaries after tool calls (what changed and where).
-- Mirror existing patterns (e.g., `SetLight`) when building JS strings; inside string interpolation `\(…)`, do not over-escape quotes (use `""`, not `\\"\\"`).
-
-## Don’t
-- Don’t mutate style before it’s loaded or after it changed without re-adding layers.
-- Don’t expose or log API keys or precise PII (e.g., exact user location).
-- Don’t spam camera updates; throttle or combine when possible.
-- Don’t invent data (e.g., POIs) without a tool-backed source.
-
-## Failure Handling
-- Retry once on transient bridge errors; otherwise surface a clear summary and next step.
-- If a tool is unavailable (e.g., geocoding/routing), ask for coordinates or permission to use external services.
-- Treat unsupported return types as warnings and fall back safely or request clarification.
-
-## Privacy
-- Redact keys and sensitive fields from logs.
-- Round/fuzz user location unless exactness is essential to the request.
-
-## Local JS Reference
-- Use `Sources/MapTilerSDK/Resources/maptiler-sdk.umd.min.js(.map)` for offline verification.
-- Prefer the source map's `sourcesContent` originals over the minified bundle for semantics.
-- Use locally for static reference; avoid network lookups unless explicitly enabled.
-
-## Examples
-- "Fly to 47.38, 8.54 at zoom 12" → validate → `FlyTo(center:{lat:47.38,lng:8.54}, animationOptions:{duration:800ms})` → confirm.
-- "Switch to satellite and show contours" → `SetStyle(.satellite)` → wait ready → add contours source+line layer → confirm.
-
-## Required Sections (read fully)
-- System Context — see section id `system_context`.
-- Project Overview — see section id `project_overview`.
-- Bridge Rules (how to wrap JS in Swift) — see section id `bridge_rules`.
-- Style Lifecycle — see section id `style_lifecycle`.
-- Project Structure — see section id `project_structure`.
-- Error Handling — see section id `error_handling`.
-- Privacy — see section id `privacy_rules`.
-
-## Snippets Index
-- BRIDGE_RULES: `<!-- AGENT_SNIPPET:BRIDGE_RULES -->`
-- STYLE_LIFECYCLE: `<!-- AGENT_SNIPPET:STYLE_LIFECYCLE -->`
-- ERROR_HANDLING: `<!-- AGENT_SNIPPET:ERROR_HANDLING -->`
-- PRIVACY_RULES: `<!-- AGENT_SNIPPET:PRIVACY_RULES -->`
-- SYSTEM_CONTEXT: `<!-- AGENT_SNIPPET:SYSTEM_CONTEXT -->`
-- PROJECT_OVERVIEW: `<!-- AGENT_SNIPPET:PROJECT_OVERVIEW -->`
-- PROJECT_STRUCTURE: `<!-- AGENT_SNIPPET:PROJECT_STRUCTURE -->`
-
- ## Pre-Implementation Checklist
-  Before writing ANY new code, you MUST:
-  - Search for existing related types: `Grep pattern="MT[TypeName]|[RelatedConcept]"`.
-  - Read similar existing implementations completely.
-  - Identify the established patterns and types used.
-  - Confirm no existing types can be reused before creating new ones.
-  - Follow SwiftLint rules defined in `.swiftlint.yml` (4-space indentation, trailing newlines, etc.).
-  - Concurrency audit (Swift 6):
-    - Use `@MainActor` for any API touching `MTMapView`/UIKit or bridge execution.
-    - Only add `Sendable` where required (types crossing concurrency domains or stored/used across tasks).
-    - Prefer `Sendable, Codable` for new public value types that are passed across async boundaries; avoid
-      `@unchecked Sendable` unless absolutely necessary with a safety comment.
-    - Ensure changes are buildable with Swift 6 toolchain (see `Package.swift` tools version).
-
-<!-- END_AGENT_DIRECTIVES -->
-
-# AGENTS.md AI Agent development rules and project guidelines
-
-<a name="system_context"></a>
 ## System Context
 
-<!-- AGENT_SNIPPET:SYSTEM_CONTEXT -->
+You are an AI agent specialized in Swift and JavaScript development. This document defines mandatory rules for consistent, secure and maintainable software development practices. You MUST follow this document precisely, including all of the sections below:
 
-You are an AI agent assisting with modern Swift development, specialized in Swift and JavaScript (TypeScript for typings/reference only). Execution in this SDK occurs in a `WKWebView` using JavaScript. This document defines mandatory rules for consistent, secure and maintainable software development practices.
-<!-- END_AGENT_SNIPPET -->
+- Project Overview (MUST read fully)
+- Pre-Implementation Checklist (MUST read fully)
+- Bridge Rules (MUST read fully)
+- Code style guidelines (MANDATORY)
+- SwiftLint Compliance (MANDATORY)
+- Development best practices (Adhere to best practices at all times.)
+- Swift Concurrency (Swift 6)
+- Project Structure
+- Style Lifecycle
+- Error Handling
+- Privacy
+- Tests
+- Pull Request Template
 
-<a name="project_overview"></a>
 ## Project Overview
 
-<!-- AGENT_SNIPPET:PROJECT_OVERVIEW -->
+This repository is a SDK written in Swift, and is a swift package compatible with Swift Package Manager. It wraps the MapTiler JS SDK via Bridge architecture written in /Sources/Bridge folder. It uses maptiler-sdk.umd.min.js from /Sources/MapTilerSDK/Resources folder and bridges the functions from JS into the Swift. Bridging process is described in detail in Bridge Rules section and MUST be read fully and followed THOROUGHLY. API reference for the JS is found in /js/docs folder and you can search it through index.html or with grep on any file within the docs folder. You MUST always refer to docs before wrapping any functions.
 
-This repository is a SDK written in Swift, it uses maptiler-sdk.umd.min.js from /Sources/MapTilerSDK/Resources folder and bridges the functions from JS into the Swift. Bridging process is done via code in /Sources/MapTilerSDK/Bridge folder.
+### Main Components
 
 - UI: MTMapView hosts a WKWebView rendering Resources/MapTilerMap.html, which loads the MapTiler JS SDK.
 - Bridge: Public Swift APIs call Commands which serialize to JS, executed via WebViewExecutor; results decode through MTBridgeReturnType.
@@ -110,106 +34,26 @@ This repository is a SDK written in Swift, it uses maptiler-sdk.umd.min.js from 
 - MTBridge class is responsible for executing the MTCommand.
 - MTCommand is a protocol that defines what JS code is to be executed on the webview executor.
 - WebViewExecutor executes the evaluateJavascript on the web view.
-- JS used is the MapTiler SDK for JS, and its API reference is found at https://docs.maptiler.com/sdk-js/api/ and if you cannot access it be clear about it so we can provide the necessary context.
-<!-- END_AGENT_SNIPPET -->
+- JS used is the MapTiler SDK for JS, and its API reference is found in /js/docs and you can search it through indext.html or with grep on any file within the docs folder.
 
-## Core Principles
+## Pre-Implementation Checklist
+  Before writing ANY new code, you MUST:
+  - Search for existing related types: `Grep pattern="MT[TypeName]|[RelatedConcept]"`.
+  - Read similar existing implementations completely.
+  - Identify the established patterns and types used.
+  - Confirm no existing types can be reused before creating new ones.
+  - Follow SwiftLint rules defined in `.swiftlint.yml` (4-space indentation, trailing newlines, etc.).
+  - Don't proceed until all search/pattern analysis is complete.
+  - Concurrency audit (Swift 6):
+    - Use `@MainActor` for any API touching `MTMapView`/UIKit or bridge execution.
+    - Only add `Sendable` where required (types crossing concurrency domains or stored/used across tasks).
+    - Prefer `Sendable, Codable` for new public value types that are passed across async boundaries; avoid
+      `@unchecked Sendable` unless absolutely necessary with a safety comment.
+    - Ensure changes are buildable with Swift 6 toolchain (see `Package.swift` tools version).
 
-- Clarity over brevity (Readable code over shortness of expressions).
-- Easy to extend (Decoupled components and separation of concerns).
-- Consistency (Easy to memorize API).
 
-## Code style guidelines
-
-- Each public entity is suffixed with MT (i.e. MTMapView, MTMapStyle).
-- Classes, Structs, Protocols and Enums use PascalCase (i.e. MTMapOptions, MTMapViewDelegate).
-- Variables and Functions use camelCase (i.e. zoomIn(), mapOptions).
-- Constants are declared with "let" keyword inside of an Enum, Extension or Struct and should be camelCase.
-  
-- 4 spaces are used for indentation.
-- Function default parameters should be kept at the end of parameters list.
-- End files with exactly one trailing newline (no extra blank lines at EOF).
-- Line length: 120 characters max (code and comments). Wrap doc comments accordingly.
-
-### SwiftLint Compliance (MANDATORY)
-- ALWAYS follow the rules defined in `.swiftlint.yml` in the root directory.
-- Key rules: 4-space indentation, trailing newlines, closure spacing, operator whitespace.
-- Test files are excluded from linting but should still follow general style guidelines.
-- Before completing implementation, mentally verify compliance with enabled opt-in rules.
-
-## Development best practices
-
-- Prefer `public` for public API; use `open` only when subclassing/overriding by SDK consumers is intended.
-- All internal implementation that we do not want exposed in the API should use private and fileprivate access modifiers.
-- Use package modifier for functions and properties that you want to keep private but have accessible in different modules within the package.
-- When introducing new error types always conform to Error protocol.
-- Write a documentation comment for every public declaration.
-- We should aim for high unit test coverage, but be sensible.
-- Code will be linted with SwiftLint using rule defined in .swiftlint.yml file in the root of the repo.
-- Each file should have a copyright header.
-
-## Swift Concurrency (Swift 6)
-
-- Main thread safety:
-  - Mark UI/`MTMapView`-facing APIs and bridge executors as `@MainActor`. Do not access UIKit/WebKit off the main actor.
-- Sendability:
-  - Add `Sendable` only when a type must be safely shared across concurrency domains. Do not blanket-annotate.
-  - Public value-models that are used in async APIs should conform to `Sendable` (and typically `Codable`).
-  - Avoid `@unchecked Sendable` unless invariants guarantee thread-safety; document the rationale inline.
-- Buildability:
-  - Code must compile cleanly under Swift 6 (`// swift-tools-version: 6.0`).
-  - Keep non-UI model/tests platform-agnostic when possible; avoid UIKit in Linux-only test contexts.
-  - Prefer small, testable units (commands, options) with `toJS()` contract tests over UI-bound tests.
-
-<a name="project_structure"></a>
-## Project Structure
-
-<!-- AGENT_SNIPPET:PROJECT_STRUCTURE -->
-### Top-Level
-
-- README.md: Usage, features, UIKit/SwiftUI snippets, sources/layers, annotations, installation.
-- CHANGELOG.md, CONTRIBUTING.md, LICENSE: Project meta.
-- .swiftlint.yml: Lint rules.
-- .spi.yml: Swift Package Index config.
-- .github/, .githooks/, scripts/: CI, hooks, and scripts scaffolding.
-
-### Library: Sources/MapTilerSDK
-
-- Map/: Core UI and map API.
-    - MTMapView: Main UIView backed by WKWebView; exposes map/style APIs, delegates, and lifecycle (didLoad, isReady, isIdle).
-    - MTMapViewContainer: SwiftUI wrapper.
-    - MTMapOptions + Options/: Camera, padding, animation, gestures config.
-    - Style/: MTStyle, reference styles/variants, glyphs/terrain/tile scheme, style errors.
-    - Gestures/: Gesture types and services (pan, pinch/rotate/zoom, double tap).
-    - Types/: Shared types (e.g., LngLat, MTColor, MTPoint, MTLight, source data).
-    - Extensions/: Glue to the bridge/delegate protocols.
-- Bridge/: Swift ↔️ JS bridge via WebView.
-    - MTCommand: Protocol for JS-callable commands.
-    - MTBridge: Executes commands via an executor.
-    - WebViewExecutor: WKWebView evaluator; error handling, verbose logging.
-    - WebViewManager: WebView setup, script messaging, navigation delegate.
-    - MTBridgeReturnType, MTError: Typed return decoding and error surface.
-- Commands/: Strongly-typed wrappers that turn Swift calls into JS invocations.
-    - Config/: API key, telemetry, units, caching, session logic.
-    - Navigation/: Camera controls (flyTo, easeTo, jumpTo, pan/zoom/bearing/pitch/roll, bounds, padding).
-    - Style/: Add/remove sources and layers, set style, language, light, glyphs, projection, terrain.
-    - Annotations/: Add/remove markers and text popups, set coordinates, batch ops.
-    - Gestures/: Enable/disable gesture types.
-    - Controls/: Add logo control.
-- Annotations/: Public annotation APIs (MTMarker, MTTextPopup, MTCustomAnnotationView, base MTAnnotation).
-- Events/: Event pipeline (EventProcessor, buffer) that feeds MTMapViewDelegate and content delegates.
-- Helpers/: Codable helpers, color/coordinates converters, benchmarking.
-- Logging/: Log level/types and adapters (MTLogger, OSLogger).
-- Root files: MTConfig (API key, session logic, log level), MTEvent, MTLanguage, MTLocationManager, MTUnit.
-- Resources/: Embedded assets for the web map container.
-    - MapTilerMap.html: Base HTML container.
-    - MapInit.js, MapEventSetUp.js: Map bootstrapping and event wiring.
-    - maptiler-sdk.umd.min.js(.map), maptiler-sdk.css: MapTiler JS SDK bundle and styles.
-
-<a name="bridge_rules"></a>
 ## Bridge Rules
 
-<!-- AGENT_SNIPPET:BRIDGE_RULES -->
 MUST follow this end-to-end flow when wrapping a JS API into Swift:
 
 1) Discover and design
@@ -269,37 +113,91 @@ public extension MTMapView {
     }
 }
 ```
-<!-- END_AGENT_SNIPPET -->
 
-<a name="style_lifecycle"></a>
-## Style Lifecycle
+## Code style guidelines (MANDATORY)
 
-<!-- AGENT_SNIPPET:STYLE_LIFECYCLE -->
-MUST wait for `didLoad`/`isReady` before mutating style or layers. Changing the reference style resets layers; re-add required sources/layers after `SetStyle`. Prefer batch commands where available. When enabling terrain or projection changes, verify map idleness before subsequent camera moves.
-<!-- END_AGENT_SNIPPET -->
+- Each public entity is suffixed with MT (i.e. MTMapView, MTMapStyle).
+- Classes, Structs, Protocols and Enums use PascalCase (i.e. MTMapOptions, MTMapViewDelegate).
+- Variables and Functions use camelCase (i.e. zoomIn(), mapOptions).
+- Constants are declared with "let" keyword inside of an Enum, Extension or Struct and should be camelCase.
+  
+- 4 spaces are used for indentation.
+- Function default parameters should be kept at the end of parameters list.
+- End files with exactly one trailing newline (no extra blank lines at EOF).
+- Line length: 120 characters max (code and comments). Wrap doc comments accordingly.
 
-<a name="error_handling"></a>
-## Error Handling
+## SwiftLint Compliance (MANDATORY)
+- ALWAYS follow the rules defined in `.swiftlint.yml` in the root directory.
+- Key rules: 4-space indentation, trailing newlines, closure spacing, operator whitespace.
+- Test files are excluded from linting but should still follow general style guidelines.
+- Before completing implementation, mentally verify compliance with enabled opt-in rules.
 
-<!-- AGENT_SNIPPET:ERROR_HANDLING -->
-- Retry once on transient `WKError` bridge failures (excluding unsupported type warnings).
-- Return clear, user-facing messages with the failed command and suggested fix.
-- Treat unsupported return types as warnings; choose a safer path or request input.
-<!-- END_AGENT_SNIPPET -->
+## Development best practices
 
-<a name="privacy_rules"></a>
-## Privacy
+- Prefer `public` for public API; use `open` only when subclassing/overriding by SDK consumers is intended.
+- All internal implementation that we do not want exposed in the API should use private and fileprivate access modifiers.
+- Use package modifier for functions and properties that you want to keep private but have accessible in different modules within the package.
+- When introducing new error types always conform to Error protocol.
+- Write a documentation comment for every public declaration.
+- We should aim for high unit test coverage, but be sensible.
+- Code will be linted with SwiftLint using rule defined in .swiftlint.yml file in the root of the repo.
+- Each file should have a copyright header.
 
-<!-- AGENT_SNIPPET:PRIVACY_RULES -->
-- Never log API keys. Redact sensitive values from structured logs.
-- Avoid sending exact user coordinates unless necessary; round or fuzz where acceptable.
-<!-- END_AGENT_SNIPPET -->
+## Swift Concurrency (Swift 6)
 
-### Examples
+- Main thread safety:
+  - Mark UI/`MTMapView`-facing APIs and bridge executors as `@MainActor`. Do not access UIKit/WebKit off the main actor.
+- Sendability:
+  - Add `Sendable` only when a type must be safely shared across concurrency domains. Do not blanket-annotate.
+  - Public value-models that are used in async APIs should conform to `Sendable` (and typically `Codable`).
+  - Avoid `@unchecked Sendable` unless invariants guarantee thread-safety; document the rationale inline.
+- Buildability:
+  - Code must compile cleanly under Swift 6 (`// swift-tools-version: 6.0`).
+  - Keep non-UI model/tests platform-agnostic when possible; avoid UIKit in Linux-only test contexts.
+  - Prefer small, testable units (commands, options) with `toJS()` contract tests over UI-bound tests.
 
-- Standalone SwiftUI/UIKit samples: BasicMapView+SwiftUI.swift, BasicMapViewController+UIKit.swift, MarkersAndPopups+…, SourcesAndLayers+….
-- MapTilerMobileDemo/: Full UIKit demo Xcode project with storyboards, controls, custom views, sample GeoJSON.
-- Assets: Logo, marker, screenshots.
+## Project Structure
+
+### Top-Level
+
+- README.md: Usage, features, UIKit/SwiftUI snippets, sources/layers, annotations, installation.
+- CHANGELOG.md, CONTRIBUTING.md, LICENSE: Project meta.
+- .swiftlint.yml: Lint rules.
+- .spi.yml: Swift Package Index config.
+- .github/, .githooks/, scripts/: CI, hooks, and scripts scaffolding.
+
+### Library: Sources/MapTilerSDK
+
+- Map/: Core UI and map API.
+    - MTMapView: Main UIView backed by WKWebView; exposes map/style APIs, delegates, and lifecycle (didLoad, isReady, isIdle).
+    - MTMapViewContainer: SwiftUI wrapper.
+    - MTMapOptions + Options/: Camera, padding, animation, gestures config.
+    - Style/: MTStyle, reference styles/variants, glyphs/terrain/tile scheme, style errors.
+    - Gestures/: Gesture types and services (pan, pinch/rotate/zoom, double tap).
+    - Types/: Shared types (e.g., LngLat, MTColor, MTPoint, MTLight, source data).
+    - Extensions/: Glue to the bridge/delegate protocols.
+- Bridge/: Swift ↔️ JS bridge via WebView.
+    - MTCommand: Protocol for JS-callable commands.
+    - MTBridge: Executes commands via an executor.
+    - WebViewExecutor: WKWebView evaluator; error handling, verbose logging.
+    - WebViewManager: WebView setup, script messaging, navigation delegate.
+    - MTBridgeReturnType, MTError: Typed return decoding and error surface.
+- Commands/: Strongly-typed wrappers that turn Swift calls into JS invocations.
+    - Config/: API key, telemetry, units, caching, session logic.
+    - Navigation/: Camera controls (flyTo, easeTo, jumpTo, pan/zoom/bearing/pitch/roll, bounds, padding).
+    - Style/: Add/remove sources and layers, set style, language, light, glyphs, projection, terrain.
+    - Annotations/: Add/remove markers and text popups, set coordinates, batch ops.
+    - Gestures/: Enable/disable gesture types.
+    - Controls/: Add logo control.
+- Annotations/: Public annotation APIs (MTMarker, MTTextPopup, MTCustomAnnotationView, base MTAnnotation).
+- Events/: Event pipeline (EventProcessor, buffer) that feeds MTMapViewDelegate and content delegates.
+- Helpers/: Codable helpers, color/coordinates converters, benchmarking.
+- Logging/: Log level/types and adapters (MTLogger, OSLogger).
+- Root files: MTConfig (API key, session logic, log level), MTEvent, MTLanguage, MTLocationManager, MTUnit.
+- Resources/: Embedded assets for the web map container.
+    - MapTilerMap.html: Base HTML container.
+    - MapInit.js, MapEventSetUp.js: Map bootstrapping and event wiring.
+    - maptiler-sdk.umd.min.js(.map), maptiler-sdk.css: MapTiler JS SDK bundle and styles.
 
 ### Tests
 
@@ -307,8 +205,24 @@ MUST wait for `didLoad`/`isReady` before mutating style or layers. Changing the 
     - Helpers: coordinate and color conversions, language decoding.
     - Additional suites: navigation and style tests.
 
-<!-- END_AGENT_SNIPPET -->
 
+## Style Lifecycle
+
+MUST wait for `didLoad`/`isReady` before mutating style or layers. Changing the reference style resets layers; re-add required sources/layers after `SetStyle`. Prefer batch commands where available. When enabling terrain or projection changes, verify map idleness before subsequent camera moves.
+
+## Error Handling
+
+- Retry once on transient `WKError` bridge failures (excluding unsupported type warnings).
+- Return clear, user-facing messages with the failed command and suggested fix.
+- Treat unsupported return types as warnings; choose a safer path or request input.
+
+## Privacy
+
+- Never log API keys. Redact sensitive values from structured logs.
+- Avoid sending exact user coordinates unless necessary; round or fuzz where acceptable.
+
+
+Cross-reference implementation against original prompt requirements before making pull request, and make sure to follow the Pull Request Template below:
 
 ## Pull Request Template
 
