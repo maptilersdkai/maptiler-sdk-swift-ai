@@ -143,19 +143,6 @@ public extension MTMapView {
 - Code is linted by SwiftLint using repo rules.
 - Each file should have a copyright header.
 
-## Swift Concurrency (Swift 6)
-
-- Main thread safety:
-  - Mark UI/`MTMapView`-facing APIs and bridge executors as `@MainActor`. Do not access UIKit/WebKit off the main actor.
-- Sendability:
-  - Add `Sendable` only when a type must be safely shared across concurrency domains. Do not blanket-annotate.
-  - Public value-models that are used in async APIs should conform to `Sendable` (and typically `Codable`).
-  - Avoid `@unchecked Sendable` unless invariants guarantee thread-safety; document the rationale inline.
-- Buildability:
-  - Code must compile cleanly under Swift 6 (`// swift-tools-version: 6.0`).
-  - Keep non-UI model/tests platform-agnostic when possible; avoid UIKit in Linux-only test contexts.
-  - Prefer small, testable units (commands, options) with `toJS()` contract tests over UI-bound tests.
-
 ## Project Structure
 
 ### Top-Level
@@ -205,6 +192,40 @@ public extension MTMapView {
     - Helpers: coordinate and color conversions, language decoding.
     - Additional suites: navigation and style tests.
 
+  ### Swift API Surface (Prefer Stronger Swift Types)
+- Prefer expressive Swift-first APIs that hide JS-specific details while encoding the correct JS schema under the hood.
+- For values that are strings in JS but have richer Swift domain types (e.g., colors), expose ergonomic initializers and helpers:
+  - Accept `UIColor`/domain types in public API and convert to the required JS representation (e.g., hex string) internally.
+  - Keep union models for zoom-dependent values (e.g., “string | ZoomStringValues”) but add Swift-friendly initializers:
+    - Constant: `.init(color: UIColor)` or `.init(number: Double)`
+    - Zoom stops: `.init(zoomStopsWithColors: [(zoom: Double, color: UIColor)])`, `.init(zoomStops: [(zoom: Double, value: Double)])`
+- Use meaningful enums for string unions (e.g., `MTLineCap`, `MTLineJoin`).
+- Validate inputs and clamp numeric ranges in Swift before bridging to JS.
+- Default parameter values should reflect sensible SDK defaults.
+
+### File Organization Rules
+- Reusable model types live under `Map/Types` and are grouped by domain:
+  - Style-related helpers (e.g., zoom-dependent unions, dash pattern): `Map/Types/Style/`.
+  - Geometry and shared primitives: `Map/Types/`.
+- Command wrappers live under `Commands/<Area>/<Command>.swift` and include only what pertains to the command:
+  - Keep command-specific `Options` with the command file.
+  - Move shared/reusable unions and value types to `Map/Types`.
+- Public UI/API extensions live under `Map/Extensions/<Area>/MTMapView+<Area>.swift`.
+- Tests mirror the structure under `Tests/MapTilerSDKTests/…` to keep intent discoverable.
+- One concern per file: avoid placing multiple unrelated general-purpose types alongside a command.
+
+## Swift Concurrency (Swift 6)
+
+- Main thread safety:
+  - Mark UI/`MTMapView`-facing APIs and bridge executors as `@MainActor`. Do not access UIKit/WebKit off the main actor.
+- Sendability:
+  - Add `Sendable` only when a type must be safely shared across concurrency domains. Do not blanket-annotate.
+  - Public value-models that are used in async APIs should conform to `Sendable` (and typically `Codable`).
+  - Avoid `@unchecked Sendable` unless invariants guarantee thread-safety; document the rationale inline.
+- Buildability:
+  - Code must compile cleanly under Swift 6 (`// swift-tools-version: 6.0`).
+  - Keep non-UI model/tests platform-agnostic when possible; avoid UIKit in Linux-only test contexts.
+  - Prefer small, testable units (commands, options) with `toJS()` contract tests over UI-bound tests.
 
 ## Style Lifecycle
 
@@ -220,6 +241,12 @@ MUST wait for `didLoad`/`isReady` before mutating style or layers. Changing the 
 
 - Never log API keys. Redact sensitive values from structured logs.
 - Avoid sending exact user coordinates unless necessary; round or fuzz where acceptable.
+
+## Tests
+
+- Do not run test commands yourself. Never invoke `swift test`, `xcodebuild test`, `npm test`, or similar from the agent.
+- Add or update unit tests as required (encoding, clamping, `toJS()` contract), but leave execution to the user/CI.
+- Prefer small, focused tests near the code you change; avoid introducing unrelated tests.
 
 ## Glossary
 
