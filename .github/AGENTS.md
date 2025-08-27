@@ -76,6 +76,12 @@ Priority: Follow these directives unless they conflict with system/developer ins
   - Identify the established patterns and types used.
   - Confirm no existing types can be reused before creating new ones.
   - Follow SwiftLint rules defined in `.swiftlint.yml` (4-space indentation, trailing newlines, etc.).
+  - Concurrency audit (Swift 6):
+    - Use `@MainActor` for any API touching `MTMapView`/UIKit or bridge execution.
+    - Only add `Sendable` where required (types crossing concurrency domains or stored/used across tasks).
+    - Prefer `Sendable, Codable` for new public value types that are passed across async boundaries; avoid
+      `@unchecked Sendable` unless absolutely necessary with a safety comment.
+    - Ensure changes are buildable with Swift 6 toolchain (see `Package.swift` tools version).
 
 <!-- END_AGENT_DIRECTIVES -->
 
@@ -141,6 +147,19 @@ This repository is a SDK written in Swift, it uses maptiler-sdk.umd.min.js from 
 - We should aim for high unit test coverage, but be sensible.
 - Code will be linted with SwiftLint using rule defined in .swiftlint.yml file in the root of the repo.
 - Each file should have a copyright header.
+
+## Swift Concurrency (Swift 6)
+
+- Main thread safety:
+  - Mark UI/`MTMapView`-facing APIs and bridge executors as `@MainActor`. Do not access UIKit/WebKit off the main actor.
+- Sendability:
+  - Add `Sendable` only when a type must be safely shared across concurrency domains. Do not blanket-annotate.
+  - Public value-models that are used in async APIs should conform to `Sendable` (and typically `Codable`).
+  - Avoid `@unchecked Sendable` unless invariants guarantee thread-safety; document the rationale inline.
+- Buildability:
+  - Code must compile cleanly under Swift 6 (`// swift-tools-version: 6.0`).
+  - Keep non-UI model/tests platform-agnostic when possible; avoid UIKit in Linux-only test contexts.
+  - Prefer small, testable units (commands, options) with `toJS()` contract tests over UI-bound tests.
 
 <a name="project_structure"></a>
 ## Project Structure
