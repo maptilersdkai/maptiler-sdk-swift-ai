@@ -192,16 +192,23 @@ public extension MTMapView {
     - Helpers: coordinate and color conversions, language decoding.
     - Additional suites: navigation and style tests.
 
-  ### Swift API Surface (Prefer Stronger Swift Types)
+### Swift API Surface (Prefer Stronger Swift Types)
 - Prefer expressive Swift-first APIs that hide JS-specific details while encoding the correct JS schema under the hood.
 - For values that are strings in JS but have richer Swift domain types (e.g., colors), expose ergonomic initializers and helpers:
-  - Accept `UIColor`/domain types in public API and convert to the required JS representation (e.g., hex string) internally.
-  - Keep union models for zoom-dependent values (e.g., “string | ZoomStringValues”) but add Swift-friendly initializers:
-    - Constant: `.init(color: UIColor)` or `.init(number: Double)`
-    - Zoom stops: `.init(zoomStopsWithColors: [(zoom: Double, color: UIColor)])`, `.init(zoomStops: [(zoom: Double, value: Double)])`
+- Accept `UIColor`/domain types in public API and convert to the required JS representation (e.g., hex string) internally.
+- Keep union models for zoom-dependent values (e.g., “string | ZoomStringValues”) but add Swift-friendly initializers:
+  - Constant: `.init(color: UIColor)` or `.init(number: Double)`
+  - Zoom stops: `.init(zoomStopsWithColors: [(zoom: Double, color: UIColor)])`, `.init(zoomStops: [(zoom: Double, value: Double)])`
 - Use meaningful enums for string unions (e.g., `MTLineCap`, `MTLineJoin`).
 - Validate inputs and clamp numeric ranges in Swift before bridging to JS.
 - Default parameter values should reflect sensible SDK defaults.
+
+#### Developer-Facing Simplicity (MANDATORY)
+- Prefer Swift-first types over raw strings in public APIs (e.g., `UIColor`, enums, typed models).
+- Colors (`string | ZoomStringValues`): provide initializers for `.color(UIColor)` and `.zoomStops([(Double, UIColor)])`.
+- Numbers (`number | ZoomNumberValues`): provide `.constant(Double)` and `.zoomStops([(Double, Double)])`.
+- Mixed unions (`Array<number> | string`, e.g., dash arrays): accept both `[Double]` and `String` forms.
+- Add minimal tests to verify encoding and `toJS()` contracts for these conveniences.
 
 ### File Organization Rules
 - Reusable model types live under `Map/Types` and are grouped by domain:
