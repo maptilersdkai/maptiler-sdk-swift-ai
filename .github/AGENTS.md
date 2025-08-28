@@ -40,14 +40,8 @@ This Swift Package wraps the MapTiler JS SDK via a typed Swift↔JS bridge locat
   - Identify the established patterns and types used.
   - Confirm no existing types can be reused before creating new ones.
   - Follow SwiftLint rules defined in `.swiftlint.yml` (4-space indentation, trailing newlines, etc.).
-  - Run `swiftlint lint --quiet` and fix all violations before concluding work.
+  - Run `swiftlint lint --quiet` and fix all violations before concluding work. Skip if swiftlint is not available.
   - Don't proceed until all search/pattern analysis is complete.
-  - Concurrency audit (Swift 6):
-    - Use `@MainActor` for any API touching `MTMapView`/UIKit or bridge execution.
-    - Only add `Sendable` where required (types crossing concurrency domains or stored/used across tasks).
-    - Prefer `Sendable, Codable` for new public value types that are passed across async boundaries; avoid
-      `@unchecked Sendable` unless absolutely necessary with a safety comment.
-    - Ensure changes are buildable with Swift 6 toolchain (see `Package.swift` tools version).
 
 
 ## Bridge Rules
