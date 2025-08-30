@@ -23,10 +23,46 @@ final class AddPolylineTests: XCTestCase {
         let command = AddPolyline(options: options)
         let js = command.toJS()
         
-        XCTAssertTrue(js.contains("\"data\": \"74003ba7-215a-4b7e-8e26-5bbe3aa70b05\""))
-        XCTAssertTrue(js.contains("\"lineColor\": \"#FF0000\""))
-        XCTAssertTrue(js.contains("\"lineWidth\": 4"))
+        XCTAssertTrue(js.contains("\"data\":\"74003ba7-215a-4b7e-8e26-5bbe3aa70b05\""))
+        XCTAssertTrue(js.contains("\"lineColor\":\"#FF0000\""))
+        XCTAssertTrue(js.contains("\"lineWidth\":4"))
         XCTAssertTrue(js.contains("maptilersdk.helpers.addPolyline(map,"))
+    }
+
+    func testOptionsJSONEncoding() throws {
+        let options = MTPolylineLayerOptions(
+            data: "test.geojson",
+            outline: true,
+            lineColor: .constant(.blue),
+            lineWidth: .constant(2.5),
+            lineCap: .square
+        )
+
+        let json = options.toJSON()
+        XCTAssertNotNil(json)
+
+        guard let jsonData = json?.data(using: String.Encoding.utf8) else {
+            XCTFail("Failed to convert JSON string to data")
+            return
+        }
+
+        let decoded = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any]
+        XCTAssertNotNil(decoded)
+        
+        let dataValue = decoded?["data"] as? String
+        XCTAssertEqual(dataValue, "test.geojson")
+        
+        let lineColorValue = decoded?["lineColor"] as? String
+        XCTAssertEqual(lineColorValue, "#0000FF")
+        
+        let lineWidthValue = decoded?["lineWidth"] as? Double
+        XCTAssertEqual(lineWidthValue, 2.5)
+        
+        let lineCapValue = decoded?["lineCap"] as? String
+        XCTAssertEqual(lineCapValue, "square")
+        
+        let outlineValue = decoded?["outline"] as? Bool
+        XCTAssertEqual(outlineValue, true)
     }
     
     func testAddPolylineWithZoomStops() throws {
@@ -49,8 +85,8 @@ final class AddPolylineTests: XCTestCase {
         let command = AddPolyline(options: options)
         let js = command.toJS()
         
-        XCTAssertTrue(js.contains("\"lineColor\": [{\"zoom\": 0.0, \"value\": \"#FF0000\"}, {\"zoom\": 10.0, \"value\": \"#0000FF\"}]"))
-        XCTAssertTrue(js.contains("\"lineWidth\": [{\"zoom\": 0.0, \"value\": 2.0}, {\"zoom\": 15.0, \"value\": 8.0}]"))
+        XCTAssertTrue(js.contains("\"lineColor\":[{\"value\":\"#FF0000\",\"zoom\":0},{\"value\":\"#0000FF\",\"zoom\":10}]"))
+        XCTAssertTrue(js.contains("\"lineWidth\":[{\"value\":2,\"zoom\":0},{\"value\":8,\"zoom\":15}]"))
     }
     
     func testAddPolylineWithDashArray() throws {
@@ -62,7 +98,7 @@ final class AddPolylineTests: XCTestCase {
         let command = AddPolyline(options: options)
         let js = command.toJS()
         
-        XCTAssertTrue(js.contains("\"lineDashArray\": [3.0, 1.0, 1.0, 1.0]"))
+        XCTAssertTrue(js.contains("\"lineDashArray\":[3,1,1,1]"))
     }
     
     func testAddPolylineWithDashPattern() throws {
@@ -74,7 +110,7 @@ final class AddPolylineTests: XCTestCase {
         let command = AddPolyline(options: options)
         let js = command.toJS()
         
-        XCTAssertTrue(js.contains("\"lineDashArray\": \"____ _ \""))
+        XCTAssertTrue(js.contains("\"lineDashArray\":\"____ _ \""))
     }
     
     func testAddPolylineWithLineCapAndJoin() throws {
@@ -87,8 +123,8 @@ final class AddPolylineTests: XCTestCase {
         let command = AddPolyline(options: options)
         let js = command.toJS()
         
-        XCTAssertTrue(js.contains("\"lineCap\": \"butt\""))
-        XCTAssertTrue(js.contains("\"lineJoin\": \"miter\""))
+        XCTAssertTrue(js.contains("\"lineCap\":\"butt\""))
+        XCTAssertTrue(js.contains("\"lineJoin\":\"miter\""))
     }
     
     func testAddPolylineWithOutline() throws {
@@ -102,9 +138,9 @@ final class AddPolylineTests: XCTestCase {
         let command = AddPolyline(options: options)
         let js = command.toJS()
         
-        XCTAssertTrue(js.contains("\"outline\": true"))
-        XCTAssertTrue(js.contains("\"outlineColor\": \"#FFFFFF\""))
-        XCTAssertTrue(js.contains("\"outlineWidth\": 1"))
+        XCTAssertTrue(js.contains("\"outline\":true"))
+        XCTAssertTrue(js.contains("\"outlineColor\":\"#FFFFFF\""))
+        XCTAssertTrue(js.contains("\"outlineWidth\":1"))
     }
     
     func testPolylineResultDecoding() throws {

@@ -10,7 +10,7 @@
 import UIKit
 
 /// Options for adding a polyline layer using the helper method
-public struct MTPolylineLayerOptions: Sendable {
+public struct MTPolylineLayerOptions: Codable, Sendable {
     /// ID to give to the layer. If not provided, an auto-generated ID will be created.
     public let layerId: String?
 
@@ -108,6 +108,92 @@ public struct MTPolylineLayerOptions: Sendable {
         self.lineDashArray = lineDashArray
         self.lineCap = lineCap
         self.lineJoin = lineJoin
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(data, forKey: .data)
+        try container.encodeIfPresent(layerId, forKey: .layerId)
+        try container.encodeIfPresent(sourceId, forKey: .sourceId)
+        try container.encodeIfPresent(beforeId, forKey: .beforeId)
+        try container.encodeIfPresent(minzoom, forKey: .minzoom)
+        try container.encodeIfPresent(maxzoom, forKey: .maxzoom)
+        try container.encodeIfPresent(outline, forKey: .outline)
+
+        try encodeColorIfPresent(outlineColor, key: .outlineColor, container: &container)
+        try encodeWidthIfPresent(outlineWidth, key: .outlineWidth, container: &container)
+        try encodeWidthIfPresent(outlineOpacity, key: .outlineOpacity, container: &container)
+        try encodeWidthIfPresent(outlineBlur, key: .outlineBlur, container: &container)
+
+        try encodeColorIfPresent(lineColor, key: .lineColor, container: &container)
+        try encodeWidthIfPresent(lineWidth, key: .lineWidth, container: &container)
+        try encodeWidthIfPresent(lineOpacity, key: .lineOpacity, container: &container)
+        try encodeWidthIfPresent(lineBlur, key: .lineBlur, container: &container)
+        try encodeWidthIfPresent(lineGapWidth, key: .lineGapWidth, container: &container)
+
+        try encodeDashArrayIfPresent(lineDashArray, container: &container)
+
+        try container.encodeIfPresent(lineCap?.rawValue, forKey: .lineCap)
+        try container.encodeIfPresent(lineJoin?.rawValue, forKey: .lineJoin)
+    }
+
+    private func encodeColorIfPresent(
+        _ color: MTPolylineColor?,
+        key: CodingKeys,
+        container: inout KeyedEncodingContainer<CodingKeys>
+    ) throws {
+        guard let color = color else { return }
+        switch color {
+        case .constant(let uiColor):
+            try container.encode(uiColor.toHex(), forKey: key)
+        case .zoomStops(let values):
+            struct ZoomColorStop: Codable {
+                let zoom: Double
+                let value: String
+            }
+            let zoomStops = values.stops.map { ZoomColorStop(zoom: $0.zoom, value: $0.value) }
+            try container.encode(zoomStops, forKey: key)
+        }
+    }
+
+    private func encodeWidthIfPresent(
+        _ width: MTPolylineWidth?,
+        key: CodingKeys,
+        container: inout KeyedEncodingContainer<CodingKeys>
+    ) throws {
+        guard let width = width else { return }
+        switch width {
+        case .constant(let value):
+            try container.encode(value, forKey: key)
+        case .zoomStops(let values):
+            struct ZoomNumberStop: Codable {
+                let zoom: Double
+                let value: Double
+            }
+            let zoomStops = values.stops.map { ZoomNumberStop(zoom: $0.zoom, value: $0.value) }
+            try container.encode(zoomStops, forKey: key)
+        }
+    }
+
+    private func encodeDashArrayIfPresent(
+        _ dashArray: MTLineDashArray?,
+        container: inout KeyedEncodingContainer<CodingKeys>
+    ) throws {
+        guard let dashArray = dashArray else { return }
+        switch dashArray {
+        case .array(let values):
+            try container.encode(values, forKey: .lineDashArray)
+        case .pattern(let pattern):
+            try container.encode(pattern, forKey: .lineDashArray)
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case layerId, sourceId, data, beforeId, minzoom, maxzoom, outline
+        case outlineColor, outlineWidth, outlineOpacity, outlineBlur
+        case lineColor, lineWidth, lineOpacity, lineBlur, lineGapWidth
+        case lineDashArray, lineCap, lineJoin
     }
 }
 
