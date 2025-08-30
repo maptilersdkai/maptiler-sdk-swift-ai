@@ -433,6 +433,40 @@ extension MTMapView {
             }
         }
     }
+
+    package func runCommandWithPolylineResultReturnValue(
+        _ command: MTCommand,
+        completion: ((Result<MTPolylineResult, MTError>) -> Void)? = nil
+    ) {
+        Task {
+            do {
+                let value = try await bridge.execute(command)
+
+                if case .stringStringDict(let commandValue) = value {
+                    let result = MTPolylineResult(
+                        polylineLayerId: commandValue["polylineLayerId"] ?? "",
+                        polylineOutlineLayerId: commandValue["polylineOutlineLayerId"] ?? "",
+                        polylineSourceId: commandValue["polylineSourceId"] ?? ""
+                    )
+                    completion?(.success(result))
+                } else {
+                    MTLogger.log("\(command) returned invalid type.", type: .error)
+                    completion?(
+                        .failure(
+                            MTError.unsupportedReturnType(description: "Expected polyline result object.")
+                        )
+                    )
+                }
+            } catch {
+                MTLogger.log("\(error)", type: .error)
+                if let error = error as? MTError {
+                    completion?(.failure(error))
+                } else {
+                    completion?(.failure(MTError.bridgeNotLoaded))
+                }
+            }
+        }
+    }
 }
 
 extension MTMapView: MTLocationManagerDelegate {

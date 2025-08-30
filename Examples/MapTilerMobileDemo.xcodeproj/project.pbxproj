@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		179A527F2E62E0E200581663 /* MapTilerSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 179A527E2E62E0E200581663 /* MapTilerSDK */; };
+		179A52822E62E57C00581663 /* MapTilerSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 179A52812E62E57C00581663 /* MapTilerSDK */; };
 		17DE4A852D7EF1B500EF2187 /* MapTilerSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 17DE4A842D7EF1B500EF2187 /* MapTilerSDK */; };
 /* End PBXBuildFile section */
 
@@ -40,7 +42,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				179A52822E62E57C00581663 /* MapTilerSDK in Frameworks */,
 				17DE4A852D7EF1B500EF2187 /* MapTilerSDK in Frameworks */,
+				179A527F2E62E0E200581663 /* MapTilerSDK in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -84,6 +88,8 @@
 			name = MapTilerMobileDemo;
 			packageProductDependencies = (
 				17DE4A842D7EF1B500EF2187 /* MapTilerSDK */,
+				179A527E2E62E0E200581663 /* MapTilerSDK */,
+				179A52812E62E57C00581663 /* MapTilerSDK */,
 			);
 			productName = MapTilerMobileDemo;
 			productReference = 17ED4E912D50BE5C009F3E89 /* MapTilerMobileDemo.app */;
@@ -114,7 +120,7 @@
 			mainGroup = 17ED4E882D50BE5C009F3E89;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				17DE4A832D7EF1B500EF2187 /* XCLocalSwiftPackageReference "../../maptiler-sdk-swift" */,
+				179A52802E62E57C00581663 /* XCLocalSwiftPackageReference "../../maptiler-sdk-swift-ai" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 17ED4E922D50BE5C009F3E89 /* Products */;
@@ -352,13 +358,21 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		17DE4A832D7EF1B500EF2187 /* XCLocalSwiftPackageReference "../../maptiler-sdk-swift" */ = {
+		179A52802E62E57C00581663 /* XCLocalSwiftPackageReference "../../maptiler-sdk-swift-ai" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = "../../maptiler-sdk-swift";
+			relativePath = "../../maptiler-sdk-swift-ai";
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		179A527E2E62E0E200581663 /* MapTilerSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MapTilerSDK;
+		};
+		179A52812E62E57C00581663 /* MapTilerSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MapTilerSDK;
+		};
 		17DE4A842D7EF1B500EF2187 /* MapTilerSDK */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MapTilerSDK;
